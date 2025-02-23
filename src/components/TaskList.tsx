@@ -29,8 +29,7 @@ const TaskList = () => {
     const destinationSection = result.destination.droppableId;
 
     if (sourceSection !== destinationSection) return;
-
-    reorderTasks(filteredTasks, result.source.index, result.destination.index);
+    reorderTasks(result.source.index, result.destination.index);
   };
 
   return (

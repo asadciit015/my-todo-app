@@ -28,7 +28,7 @@ interface TodoStore {
   editTask: (id: string, title: string, description: string) => void;
   deleteTask: (id: string) => void;
   toggleTask: (id: string) => void;
-  reorderTasks: (tasks: Task[], startIndex: number, endIndex: number) => void;
+  reorderTasks: (startIndex: number, endIndex: number) => void;
   setTabValue: (value: "all" | "completed" | "incomplete") => void;
   openModal: (mode: "add" | "edit", task?: Task) => void;
   closeModal: () => void;
@@ -138,19 +138,33 @@ export const useTodoStore = create<TodoStore>()(
 
           return { tasks: updatedTasks };
         }),
-      reorderTasks: (tasks, startIndex, endIndex) =>
+      reorderTasks: (startIndex, endIndex) =>
         set((state) => {
-          const [removed] = tasks.splice(startIndex, 1);
-          tasks.splice(endIndex, 0, removed);
+          const { tasks, tabValue } = state;
 
-          const updatedTasks = tasks.map((task) => {
-            if (state.tabValue === "incomplete" && !task.completed) {
-              return tasks.shift()!;
-            } else if (state.tabValue === "completed" && task.completed) {
-              return tasks.shift()!;
+          const filteredTasks = (() => {
+            switch (tabValue) {
+              case "completed":
+                return tasks.filter((task) => task.completed);
+              case "incomplete":
+                return tasks.filter((task) => !task.completed);
+              case "all":
+              default:
+                return [...tasks];
             }
-            return task;
-          });
+          })();
+
+          const [removed] = filteredTasks.splice(startIndex, 1);
+          filteredTasks.splice(endIndex, 0, removed);
+
+          const filteredTasksMap = new Map(
+            filteredTasks.map((task) => [task.id, task])
+          );
+
+          const updatedTasks = tasks
+            .filter((task) => !filteredTasksMap.has(task.id))
+            .concat(filteredTasks);
+
           return { tasks: updatedTasks };
         }),
       setTabValue: (value) => {
@@ -193,7 +207,6 @@ const sortTasks = (
   tasks: Task[],
   sortBy: "" | "name-asc" | "name-desc" | "completed-asc" | "completed-desc"
 ): Task[] => {
-  console.log("sortBy: ", sortBy);
   switch (sortBy) {
     case "name-asc":
       return [...tasks].sort((a, b) => a.title.localeCompare(b.title));
