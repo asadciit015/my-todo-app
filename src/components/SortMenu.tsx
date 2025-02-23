@@ -24,7 +24,10 @@ const SortMenu: React.FC<{
     handleClose();
   };
 
-  const sortingOptions = [
+  const sortingOptions: {
+    value: "name-asc" | "name-desc" | "completed-asc" | "completed-desc";
+    label: string;
+  }[] = [
     { value: "name-asc", label: "Sort by Name (A-Z)" },
     { value: "name-desc", label: "Sort by Name (Z-A)" },
     { value: "completed-asc", label: "Sort by Completed (Incomplete First)" },
